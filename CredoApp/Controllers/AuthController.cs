@@ -1,6 +1,6 @@
 ﻿using CredoApp.DTOs;
+using CredoApp.Interfaces;
 using CredoApp.Models;
-using CredoApp.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,39 +13,25 @@ namespace CredoApp.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IConfiguration _configuration;
+        private readonly IAuthService _authService;
 
-        public AuthController(IUserRepository userRepository, IConfiguration configuration)
+        public AuthController(IAuthService authService)
         {
-            _userRepository = userRepository;
-            _configuration = configuration;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var existingUser = await _userRepository.GetByUsernameAsync(dto.Username);
-            if (existingUser != null)
-                return BadRequest(new { message = "UserName exists" });
-
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            var user = new User
+            try
             {
-                Username = dto.Username,
-                PasswordHash = passwordHash,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                PersonalNumber = dto.PersonalNumber,
-                BirthDate = dto.BirthDate,
-                Role = dto.Role
-            };
-
-            await _userRepository.AddAsync(user);
-            await _userRepository.SaveChangesAsync();
-
-            return Ok(new { success = true, message = "Registration Sucsesfull" });
+                await _authService.RegisterAsync(dto);
+                return Ok(new { success = true, message = "Registration Successful" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("login")]
@@ -53,48 +39,18 @@ namespace CredoApp.Controllers
         {
             try
             {
-                var user = await _userRepository.GetByUsernameAsync(dto.Username);
-                if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                {
-                    return Unauthorized(new { message = "Invalid Username Or Pasword" });
-                }
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
-
-                var claims = new[]
-                {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.UtcNow.AddHours(3),
-                    Issuer = _configuration["Jwt:Issuer"],
-                    Audience = _configuration["Jwt:Audience"],
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var tokenString = tokenHandler.WriteToken(token);
-
-
+                var token = await _authService.LoginAsync(dto);
                 return Ok(new
                 {
                     success = true,
-                    token = tokenString,
-                    username = user.Username,
-                    role = user.Role
+                    token = token,
+                    username = dto.Username
                 });
-            }catch(Exception ex)
-            {
-                Console.WriteLine($"Auth Error: {ex.Message}");
-                return BadRequest(new { message = "Auth Error" });
             }
-            
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
         }
     }
 }

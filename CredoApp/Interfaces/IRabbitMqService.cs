@@ -1,4 +1,4 @@
-﻿namespace CredoApp.Services
+﻿namespace CredoApp.Interfaces
 {
     public interface IRabbitMqService
     {

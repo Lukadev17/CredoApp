@@ -1,4 +1,5 @@
 ﻿using CredoApp.Data;
+using CredoApp.Interfaces;
 using CredoApp.Models;
 using Microsoft.EntityFrameworkCore;
 

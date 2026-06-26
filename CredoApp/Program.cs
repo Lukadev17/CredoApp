@@ -1,4 +1,6 @@
 using CredoApp.Data;
+using CredoApp.Interfaces;
+using CredoApp.MiddleWares;
 using CredoApp.Repositories;
 using CredoApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -88,11 +90,15 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
+
 
 var app = builder.Build();
 
-app.UseMiddleware<CredoApp.MiddleWares.LoggingMiddleware>(); 
+app.UseMiddleware<CredoApp.MiddleWares.LoggingMiddleware>();
+app.UseMiddleware<CredoApp.MiddleWares.GlobalExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

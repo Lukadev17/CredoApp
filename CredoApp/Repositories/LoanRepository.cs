@@ -1,4 +1,5 @@
 ﻿using CredoApp.Data;
+using CredoApp.Interfaces;
 using CredoApp.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,9 +34,14 @@ namespace CredoApp.Repositories
             _context.LoanApplications.Update(loan);
         }
 
-        public void Delete(LoanApplication loan)
+        public async Task<bool> Delete(int id)
         {
-            _context.LoanApplications.Remove(loan);
+            
+            int affectedRows = await _context.LoanApplications
+                .Where(l => l.Id == id)
+                .ExecuteDeleteAsync();
+
+            return affectedRows > 0;
         }
 
         public async Task<bool> SaveChangesAsync()

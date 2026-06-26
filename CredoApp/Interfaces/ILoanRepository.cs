@@ -1,6 +1,6 @@
 ﻿using CredoApp.Models;
 
-namespace CredoApp.Repositories
+namespace CredoApp.Interfaces
 {
     public interface ILoanRepository
     {
@@ -8,7 +8,7 @@ namespace CredoApp.Repositories
         Task<LoanApplication?> GetByIdAsync(int id);
         Task AddAsync(LoanApplication loan);
         void Update(LoanApplication loan);
-        void Delete(LoanApplication loan);
+        Task<bool> Delete(int id);
         Task<bool> SaveChangesAsync();
     }
 }

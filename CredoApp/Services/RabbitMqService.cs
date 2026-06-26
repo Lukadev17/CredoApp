@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using CredoApp.Interfaces;
+using RabbitMQ.Client;
 using System.Text;
 
 namespace CredoApp.Services

@@ -1,6 +1,6 @@
 ﻿using CredoApp.Models;
 
-namespace CredoApp.Repositories
+namespace CredoApp.Interfaces
 {
     public interface IUserRepository
     {
