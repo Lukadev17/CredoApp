@@ -37,27 +37,42 @@ namespace CredoApp.Controllers
             return Ok(new { success = true, data = loan, message = "Loan application submitted successfully." });
         }
 
+        [HttpPost("{id}/send")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> SendToQueue(int id)
+        {
+            var result = await _loanService.SendLoanToQueueAsync(id);
+            if (!result)
+            {
+                return NotFound(new { message = "Loan not found" });
+            }
+
+            return Ok(new { success = true, message = "Loan Submitted Successfully" });
+
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateLoanDto dto)
         {
-            try
-            {
-                var updated = await _loanService.UpdateLoanAsync(id, dto);
-                if (!updated) return NotFound(new { message = "Loan not found" });
 
-                return Ok(new { success = true, message = "Loan Updated" });
-            }
-            catch (InvalidOperationException ex)
+            var updated = await _loanService.UpdateLoanAsync(id, dto);
+            if (!updated)
             {
-                return BadRequest(new { message = ex.Message });
+                return NotFound(new { message = "Loan not found" });
             }
+
+            return Ok(new { success = true, message = "Loan Updated" });
+
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _loanService.DeleteLoanAsync(id);
-            if (!deleted) return NotFound(new { message = "Loan Not Found" });
+            if (!deleted)
+            {
+                return NotFound(new { message = "Loan Not Found" });
+            }
 
             return Ok(new { success = true, message = "Loan Deleted Successfully" });
         }
@@ -66,25 +81,17 @@ namespace CredoApp.Controllers
         [Authorize(Roles = "Verifier")]
         public async Task<IActionResult> ReviewLoan(int id, [FromQuery] string action)
         {
-            try
-            {
-                var newStatus = await _loanService.ReviewLoanAsync(id, action);
-                if (newStatus == null)
-                {
-                    return NotFound(new { message = "Loan not found" });
-                }
 
-                return Ok(new { success = true, message = $"Loan status has been changed: {newStatus}" });
-            }
-            
-            catch (InvalidOperationException ex)
+            var newStatus = await _loanService.ReviewLoanAsync(id, action);
+            if (newStatus == null)
             {
-                return BadRequest(new { message = ex.Message });
+                return NotFound(new { message = "Loan not found" });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+
+            return Ok(new { success = true, message = $"Loan status has been changed: {newStatus}" });
+
+
+
         }
     }
 }

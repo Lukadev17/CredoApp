@@ -47,7 +47,7 @@ namespace CredoApp.Services
             return true;
         }
 
-        public async Task<string> LoginAsync(LoginDto dto)
+        public async Task<AuthResultDto> LoginAsync(LoginDto dto)
         {
             var user = await _userRepository.GetByUsernameAsync(dto.Username);
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
@@ -55,7 +55,13 @@ namespace CredoApp.Services
                 throw new UnauthorizedAccessException("Invalid username or password.");
             }
 
-            return GenerateJwtToken(user);
+            var token = GenerateJwtToken(user);
+
+            return new AuthResultDto
+            {
+                Token = token,
+                Role = user.Role
+            };
         }
 
         private string GenerateJwtToken(User user)

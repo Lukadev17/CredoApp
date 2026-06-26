@@ -39,11 +39,13 @@ namespace CredoApp.Controllers
         {
             try
             {
-                var token = await _authService.LoginAsync(dto);
+                var authResult = await _authService.LoginAsync(dto);
+
                 return Ok(new
                 {
                     success = true,
-                    token = token,
+                    token = authResult.Token,  
+                    role = authResult.Role,    
                     username = dto.Username
                 });
             }

@@ -39,24 +39,39 @@ namespace CredoApp.Services
                 await _loanRepository.AddAsync(loan);
                 await _loanRepository.SaveChangesAsync();
 
-                try
-                {
-                    _rabbitMqService.SendLoanToQueue(loan.Id);
-
-                    loan.Status = "Submitted";
-                    _loanRepository.Update(loan);
-                    await _loanRepository.SaveChangesAsync();
-                }
-                catch (Exception queueEx)
-                {
-                    _logger.LogWarning(queueEx, "Loan {LoanId} saved but RabbitMQ message failed.", loan.Id);
-                }
-
                 return loan;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create loan for user {UserId}", userId);
+                throw;
+            }
+        }
+
+        public async Task<bool> SendLoanToQueueAsync(int loanId)
+        {
+            try
+            {
+                var loan = await _loanRepository.GetByIdAsync(loanId);
+                if (loan == null)
+                {
+                    throw new KeyNotFoundException("Loan application not found.");
+                }
+
+                if (loan.Status != "Draft")
+                {
+                    throw new InvalidOperationException("Only draft loans can be submitted.");
+                }
+
+                loan.Status = "Submitted";
+                _loanRepository.Update(loan);
+                await _loanRepository.SaveChangesAsync();
+
+                return true; ;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send loan {LoanId} to queue", loanId);
                 throw;
             }
         }
