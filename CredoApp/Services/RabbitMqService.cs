@@ -9,7 +9,7 @@ namespace CredoApp.Services
         private readonly string _hostname = "localhost";
         private readonly string _queueName = "loan_applications";
 
-        public async void SendLoanToQueue(int loanId)
+        public async Task SendLoanToQueue(int loanId)
         {
             try
             {
@@ -39,6 +39,29 @@ namespace CredoApp.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"RabbitMQ Exception: {ex.Message}");
+            }
+        }
+
+        public async Task RemoveLoanFromQueue()
+        {
+            try
+            {
+                var factory = new ConnectionFactory() { HostName = _hostname };
+                using var connection = await factory.CreateConnectionAsync();
+                using var channel = await connection.CreateChannelAsync();
+
+      
+                var result = await channel.BasicGetAsync(queue: _queueName, autoAck: true);
+
+                if (result != null)
+                {
+                    var message = Encoding.UTF8.GetString(result.Body.ToArray());
+                    Console.WriteLine($"[RabbitMQ] Loan {message} successfully processed and removed from queue.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitMQ Delete Exception: {ex.Message}");
             }
         }
     }

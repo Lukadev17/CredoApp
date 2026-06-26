@@ -2,6 +2,7 @@
 {
     public interface IRabbitMqService
     {
-        void SendLoanToQueue(int loanId);
+        Task SendLoanToQueue(int loanId);
+        Task RemoveLoanFromQueue();
     }
 }

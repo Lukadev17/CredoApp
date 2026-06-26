@@ -68,6 +68,16 @@ namespace CredoApp.Services
                 _loanRepository.Update(loan);
                 await _loanRepository.SaveChangesAsync();
 
+                try
+                {
+                    await _rabbitMqService.SendLoanToQueue(loanId);
+                }
+                catch (Exception Ex)
+                {
+                    
+                    _logger.LogWarning("RabbitMQ is not reachable, but loan status  updated in DB. Message: {Msg}", Ex.Message);
+                }
+
                 return true; ;
             }
             catch (Exception ex)
@@ -149,6 +159,9 @@ namespace CredoApp.Services
 
                 _loanRepository.Update(loan);
                 await _loanRepository.SaveChangesAsync();
+
+                await _rabbitMqService.RemoveLoanFromQueue();
+
                 return loan.Status.ToString();
             }
             catch (Exception ex)
