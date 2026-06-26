@@ -1,4 +1,5 @@
 ﻿using CredoApp.DTOs;
+using CredoApp.Enums;
 using CredoApp.Interfaces;
 using CredoApp.Models;
 
@@ -33,7 +34,7 @@ namespace CredoApp.Services
                     Amount = dto.Amount,
                     Currency = dto.Currency,
                     PeriodMonths = dto.PeriodMonths,
-                    Status = "Draft"
+                    Status = LoanStatus.Draft
                 };
 
                 await _loanRepository.AddAsync(loan);
@@ -58,12 +59,12 @@ namespace CredoApp.Services
                     throw new KeyNotFoundException("Loan application not found.");
                 }
 
-                if (loan.Status != "Draft")
+                if (loan.Status != LoanStatus.Draft)
                 {
                     throw new InvalidOperationException("Only draft loans can be submitted.");
                 }
 
-                loan.Status = "Submitted";
+                loan.Status = LoanStatus.Submitted;
                 _loanRepository.Update(loan);
                 await _loanRepository.SaveChangesAsync();
 
@@ -83,7 +84,7 @@ namespace CredoApp.Services
                 var loan = await _loanRepository.GetByIdAsync(id);
                 if (loan == null) return false;
 
-                if (loan.Status != "Draft")
+                if (loan.Status != LoanStatus.Draft)
                 {
                     throw new InvalidOperationException("Edit is impossible, loan already submitted or processed.");
                 }
@@ -127,7 +128,7 @@ namespace CredoApp.Services
                     return null;
                 }
 
-                if (loan.Status != "Submitted")
+                if (loan.Status != LoanStatus.Submitted)
                 {
                     throw new InvalidOperationException("Only Submitted Loans can be reviewed.");
                 }
@@ -135,11 +136,11 @@ namespace CredoApp.Services
                 string normalAction = action.ToLower();
                 if (normalAction == "approve")
                 {
-                    loan.Status = "Approved";
+                    loan.Status = LoanStatus.Approved;
                 }
                 else if (normalAction == "reject")
                 {
-                    loan.Status = "Rejected";
+                    loan.Status = LoanStatus.Rejected;
                 }
                 else
                 {
@@ -148,7 +149,7 @@ namespace CredoApp.Services
 
                 _loanRepository.Update(loan);
                 await _loanRepository.SaveChangesAsync();
-                return loan.Status;
+                return loan.Status.ToString();
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using CredoApp.Enums;
+using System.Text.Json.Serialization;
 
 namespace CredoApp.Models
 {
@@ -12,6 +13,6 @@ namespace CredoApp.Models
         public string LastName { get; set; } 
         public string PersonalNumber { get; set; }  
         public DateTime BirthDate { get; set; }
-        public string Role { get; set; } 
+        public UserRole Role { get; set; } = UserRole.User;
     }
 }

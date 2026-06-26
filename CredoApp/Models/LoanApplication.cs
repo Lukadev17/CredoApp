@@ -1,4 +1,6 @@
-﻿namespace CredoApp.Models
+﻿using CredoApp.Enums;
+
+namespace CredoApp.Models
 {
     public class LoanApplication
     {
@@ -11,6 +13,6 @@
         public string Currency { get; set; } 
         public int PeriodMonths { get; set; }
 
-        public string Status { get; set; } = "Draft";
+        public LoanStatus Status { get; set; } = LoanStatus.Draft;
     }
 }

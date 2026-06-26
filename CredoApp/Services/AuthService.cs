@@ -1,4 +1,5 @@
 ﻿using CredoApp.DTOs;
+using CredoApp.Enums;
 using CredoApp.Interfaces;
 using CredoApp.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -39,7 +40,7 @@ namespace CredoApp.Services
                 LastName = dto.LastName,
                 PersonalNumber = dto.PersonalNumber,
                 BirthDate = dto.BirthDate,
-                Role = dto.Role
+                Role = Enum.Parse<UserRole>(dto.Role, ignoreCase: true)
             };
 
             await _userRepository.AddAsync(user);
@@ -60,7 +61,7 @@ namespace CredoApp.Services
             return new AuthResultDto
             {
                 Token = token,
-                Role = user.Role
+                Role = user.Role.ToString()
             };
         }
 
@@ -73,7 +74,7 @@ namespace CredoApp.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
